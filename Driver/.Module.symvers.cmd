@@ -1,0 +1,1 @@
+savedcmd_/home/kendall/Desktop/Operativos/distributed_processing_p2_so/Driver/Module.symvers :=  scripts/mod/modpost -M -m -a      -o /home/kendall/Desktop/Operativos/distributed_processing_p2_so/Driver/Module.symvers -T /home/kendall/Desktop/Operativos/distributed_processing_p2_so/Driver/modules.order -i Module.symvers -e 
