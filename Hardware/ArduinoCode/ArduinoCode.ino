@@ -1,90 +1,80 @@
-//Pines de los botones.
-const int buttonPins[] = {2, 3, 4, 5}; //Pines digitales conectados a los botones.
-const int numButtons = 4; //Numero de botones.
+// Pines de los botones.
+const int buttonPins[] = {2, 3, 4, 5}; // Pines digitales conectados a los botones.
+const int numButtons = 4;             // Número de botones.
 
-//Pines para los LEDS y el Speaker.
-const int ledPinInProgress = 8; //Led que indica que aun no hay una combinacion de cuatro botones.
-const int ledPinSuccess = 7; //LED que indica que se esta reproducioendo algun numero.
-const int speakerPin = 6; //Pin para el speaker.
+// Pines para los LEDs y el Speaker.
+const int ledPinInProgress = 8;       // LED que indica que aún no hay una combinación de cuatro botones.
+const int ledPinSuccess = 7;          // LED que indica que se está reproduciendo algún número.
+const int speakerPin = 6;             // Pin para el speaker.
 
-//Variable para conteo de presiones de boton.
-int pressCount = 0; //Contador de presiones de boton.
-String buttonSequence = ""; //Cadena para almacenar la secuencia de botones.
-bool sequenceSent = false; //Bandera para saber si al secuencia se envio.
+// Variables de estado.
+String buttonSequence = "";           // Cadena para almacenar la secuencia de botones.
+bool sequenceSent = false;            // Bandera para saber si la secuencia se envió.
 
-//Set up del codigo del arduino.
 void setup() {
-  Serial.begin(9600); //Inicializacion del serial.
+  Serial.begin(9600); // Inicialización del puerto serial.
 
-  //Configuracion de los botones como entrada con resistencias pull-down.
+  // Configuración de los botones como entrada.
   for (int i = 0; i < numButtons; i++) {
-    pinMode(buttonPins[i], INPUT); //SIn pull-up porque ya posee un pull-down fisico.
+    pinMode(buttonPins[i], INPUT);
   }
 
-  //Configuracion de los pines de LEDS y del speaker como salida.
-  pinMode(ledPinInProgress, OUTPUT); //Configuracion pin de progreso.
-  pinMode(ledPinSuccess, OUTPUT); //Configuracion pin de resultados.
-  pinMode(speakerPin, LOW); //Configuracion pin del speaker.
+  // Configuración de los LEDs y del speaker como salida.
+  pinMode(ledPinInProgress, OUTPUT);
+  pinMode(ledPinSuccess, OUTPUT);
+  pinMode(speakerPin, OUTPUT);
 
-  //Estado inicial de LEDS y speaker.
-  digitalWrite(ledPinInProgress, HIGH); //LED de proceso encendido.
-  digitalWrite(ledPinSuccess, LOW); //LED de resultado apagado.
-  digitalWrite(speakerPin, LOW); // Speaker apagado.
+  // Estado inicial de LEDs y speaker.
+  digitalWrite(ledPinInProgress, HIGH); // LED de progreso encendido.
+  digitalWrite(ledPinSuccess, LOW);     // LED de éxito apagado.
+  digitalWrite(speakerPin, LOW);        // Speaker apagado.
 }
 
 void loop() {
-  checkButtonPresses(); //Revisa las presiones de los botones
-
-  if (!sequenceSent && buttonSequence.length() >= 4){
-    sendSequenceToC(); //Envia la secuencia a C
-  }
-
-  if (sequenceSent && Serial.available() > 0){
-    String binaryResponse = Serial.readStringUntil('\n'); //Lee la respuesta en binario
-    playBinaryResponse(binaryResponse); //Reproduce la secuencia en el speaker
-  }
-}
-
-//Funcion para revisar el estado de los botones
-void checkButtonPresses(){
-  for (int i = 0; i < numButtons; i++){
+  // Revisar presiones de botones.
+  for (int i = 0; i < numButtons; i++) {
     if (digitalRead(buttonPins[i]) == HIGH) {
-      buttonSequence += String(i+1);
+      buttonSequence += String(i + 1); // Añadir el número del botón presionado.
       Serial.print("Button ");
-      Serial.print(i+1);
+      Serial.print(i + 1);
       Serial.println(" pressed");
 
-      delay(200); //Debounce basico para evitar lecturas multiples
+      delay(200); // Pequeño debounce.
 
-      //Esperar que se suelte el boton
+      // Esperar a que se suelte el botón.
       while (digitalRead(buttonPins[i]) == HIGH);
     }
   }
-}
 
-//Funcion para enviar la secuencia.
-void sendSequenceToC(){
-  Serial.println(buttonSequence); //Envia la secuencia a C.
-  sequenceSent = true; //Marca que la secuencia fue enviada.
-  digitalWrite(ledPinInProgress, LOW); //Apaga el LED de proreso.
-  digitalWrite(ledPinSuccess, HIGH); //Enciende el LED de exito.
-}
-
-//Funcion para reproducir la secuencia binaria en el speaker.
-void playBinaryResponse(String binaryResponse) {
-  for (char bit : binaryResponse){
-    if (bit == '1'){
-      digitalWrite(speakerPin, HIGH); //Sonido pr 1 segundo.
-      delay(1000);
-      digitalWrite(speakerPin, LOW);
-    } else if(bit == '0'){
-      delay(2000); //Silencio or 2 segundos.
-    }
+  // Enviar la secuencia si tiene al menos 4 caracteres.
+  if (!sequenceSent && buttonSequence.length() >= 4) {
+    Serial.println(buttonSequence);   // Enviar secuencia completa al programa en C.
+    sequenceSent = true;              // Marcar que se envió la secuencia.
+    digitalWrite(ledPinInProgress, LOW); // Apagar LED de progreso.
+    digitalWrite(ledPinSuccess, HIGH);   // Encender LED de éxito.
   }
 
-  //Apaga LED de exito al finalizar.
-  digitalWrite(ledPinSuccess, LOW);
-  sequenceSent = false; //Reinicia la bandera para una nueva secuencia.
-  buttonSequence = ""; //Reinicia la secuencia de botones.
-  pressCount = 0; //Reinicia el conteo de los botones.
+  // Recibir respuesta binaria desde el programa en C.
+  if (sequenceSent && Serial.available() > 0) {
+    String binaryResponse = Serial.readStringUntil('\n'); // Leer la respuesta en binario.
+    playBinaryResponse(binaryResponse);                   // Reproducir la respuesta en el speaker.
+
+    // Restablecer el estado.
+    digitalWrite(ledPinSuccess, LOW); // Apagar LED de éxito.
+    sequenceSent = false;
+    buttonSequence = "";              // Limpiar la secuencia de botones.
+  }
+}
+
+// Función para reproducir la secuencia binaria en el speaker.
+void playBinaryResponse(String binaryResponse) {
+  for (char bit : binaryResponse) {
+    if (bit == '1') {
+      digitalWrite(speakerPin, HIGH); // Sonido por 1 segundo.
+      delay(1000);
+      digitalWrite(speakerPin, LOW);
+    } else if (bit == '0') {
+      delay(2000); // Silencio por 2 segundos.
+    }
+  }
 }
