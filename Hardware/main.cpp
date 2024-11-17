@@ -9,7 +9,7 @@ int main(){
     if (serial_port < 0){
         return -1;
     }
-    char read_buf[256]; //Buffer para almacenar los datos recibidos
+    char read_buf[1024]; //Buffer para almacenar los datos recibidos
 
     int num_bytes = serial_read(serial_port, read_buf, sizeof(read_buf)); //Leer del puerto serial
     if (num_bytes > 0){

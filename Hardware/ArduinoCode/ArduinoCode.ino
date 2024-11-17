@@ -35,9 +35,9 @@ void loop() {
   for (int i = 0; i < numButtons; i++) {
     if (digitalRead(buttonPins[i]) == HIGH) {
       buttonSequence += String(i + 1); // Añadir el número del botón presionado.
-      Serial.print("Button ");
-      Serial.print(i + 1);
-      Serial.println(" pressed");
+      //Serial.print("Button ");
+      //Serial.print(i + 1);
+      //Serial.println(" pressed");
 
       delay(200); // Pequeño debounce.
 
