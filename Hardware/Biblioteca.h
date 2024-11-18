@@ -17,13 +17,13 @@
 
 using namespace std;
 
-int serial_open(const char *portname, int baud_rate);
+int iniciarComunicacion(const char *puerto_serial);
 
-void closePort(int serial_port);
+void enviarComando(int fd, const char *comando);
 
-int sendToArduino(int serial_port, const char *message);
+int leerRespuesta(int fd, char *buffer, int buffer_size);
 
-int serial_read(int serial_port, char *buffer, size_t buffer_size);
+void cerrarComunicacion(int fd);
 
 
 #endif

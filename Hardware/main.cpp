@@ -2,21 +2,26 @@
 #include <stdio.h>
 
 int main(){
-    const char *portname = "/dev/ttyACM0";
+    const char *portname = "/dev/ttyACM1";
     int baud_rate = B9600;
 
-    int serial_port = serial_open(portname, baud_rate);
+    int serial_port = iniciarComunicacion(portname);
     if (serial_port < 0){
         return -1;
     }
     char read_buf[1024]; //Buffer para almacenar los datos recibidos
 
-    int num_bytes = serial_read(serial_port, read_buf, sizeof(read_buf)); //Leer del puerto serial
+    int num_bytes = leerRespuesta(serial_port, read_buf, sizeof(read_buf)); //Leer del puerto serial
     if (num_bytes > 0){
         printf ("Recibido: %s\n", read_buf);
     }
 
-    closePort(serial_port);
+    char test[] = "100011110100";
+    enviarComando(serial_port, test);
+    printf("ENVIADO PAPU");
+
+
+    cerrarComunicacion(serial_port);
 
     return 0;
 }

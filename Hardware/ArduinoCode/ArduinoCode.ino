@@ -10,6 +10,7 @@ const int speakerPin = 6;             // Pin para el speaker.
 // Variables de estado.
 String buttonSequence = "";           // Cadena para almacenar la secuencia de botones.
 bool sequenceSent = false;            // Bandera para saber si la secuencia se envió.
+int pressCount = 0;
 
 void setup() {
   Serial.begin(9600); // Inicialización del puerto serial.
@@ -35,9 +36,10 @@ void loop() {
   for (int i = 0; i < numButtons; i++) {
     if (digitalRead(buttonPins[i]) == HIGH) {
       buttonSequence += String(i + 1); // Añadir el número del botón presionado.
+      pressCount++;
       //Serial.print("Button ");
       //Serial.print(i + 1);
-      //Serial.println(" pressed");
+      //Serial.print(" pressed");
 
       delay(200); // Pequeño debounce.
 
@@ -47,34 +49,33 @@ void loop() {
   }
 
   // Enviar la secuencia si tiene al menos 4 caracteres.
-  if (!sequenceSent && buttonSequence.length() >= 4) {
-    Serial.println(buttonSequence);   // Enviar secuencia completa al programa en C.
-    sequenceSent = true;              // Marcar que se envió la secuencia.
-    digitalWrite(ledPinInProgress, LOW); // Apagar LED de progreso.
-    digitalWrite(ledPinSuccess, HIGH);   // Encender LED de éxito.
+  if (pressCount >= 4){
+    Serial.println(buttonSequence);
+    sequenceSent = true;
+    digitalWrite(ledPinInProgress, LOW);
+    digitalWrite(ledPinSuccess, HIGH);
   }
+  
+  if (sequenceSent && Serial.available() > 0){
+    String binaryResponse = Serial.readStringUntil('\n');
+    playBinary(binaryResponse);
 
-  // Recibir respuesta binaria desde el programa en C.
-  if (sequenceSent && Serial.available() > 0) {
-    String binaryResponse = Serial.readStringUntil('\n'); // Leer la respuesta en binario.
-    playBinaryResponse(binaryResponse);                   // Reproducir la respuesta en el speaker.
-
-    // Restablecer el estado.
-    digitalWrite(ledPinSuccess, LOW); // Apagar LED de éxito.
+    digitalWrite(ledPinSuccess, LOW);
     sequenceSent = false;
-    buttonSequence = "";              // Limpiar la secuencia de botones.
+    buttonSequence = "";
+    pressCount = 0;
+    digitalWrite(ledPinInProgress, HIGH);    
   }
 }
 
-// Función para reproducir la secuencia binaria en el speaker.
-void playBinaryResponse(String binaryResponse) {
+void playBinary(String binaryResponse){
   for (char bit : binaryResponse) {
     if (bit == '1') {
-      digitalWrite(speakerPin, HIGH); // Sonido por 1 segundo.
+      digitalWrite(speakerPin, HIGH);
       delay(1000);
       digitalWrite(speakerPin, LOW);
-    } else if (bit == '0') {
-      delay(2000); // Silencio por 2 segundos.
+    }else if (bit == '0'){
+      delay(2000);
     }
   }
 }

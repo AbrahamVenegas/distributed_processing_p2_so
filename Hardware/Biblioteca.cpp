@@ -10,18 +10,22 @@
  */
 #include "Biblioteca.h"
 
-int serial_open(const char *portname, int baud_rate){
-    int serial_port = open(portname, O_RDWR | O_NOCTTY);
-    if (serial_port == -1){
+/**
+ * Esta funcion inicia la comunicación con el arduino
+ * @param puerto_serial Un string con el puerto donde está el arduino
+ * @return
+ */
+int iniciarComunicacion(const char *puerto_serial) {
+    int fd = open(puerto_serial, O_RDWR | O_NOCTTY);
+    if (fd == -1) {
         perror("Error al abrir el puerto serial");
         return -1;
     }
 
     struct termios tty;
-    memset(&tty, 0, sizeof tty);
-    if (tcgetattr(serial_port, &tty) != 0){
+    if (tcgetattr(fd, &tty) != 0) {
         perror("Error obteniendo los atributos del puerto serial");
-        close(serial_port);
+        close(fd);
         return -1;
     }
 
@@ -46,41 +50,68 @@ int serial_open(const char *portname, int baud_rate){
     tty.c_cc[VMIN] = 1;     // Leer al menos 1 byte
     tty.c_cc[VTIME] = 10;   // Timeout de 1 segundo
 
-    if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
+    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
         perror("Error configurando el puerto serial");
-        close(serial_port);
+        close(fd);
         return -1;
     }
-    return serial_port;    
+
+    return fd;
 }
 
-int serial_read(int serial_port, char *buffer, size_t buffer_size){
-    memset(buffer, 0, buffer_size);
-    int num_bytes = read(serial_port, buffer, buffer_size-1);
-    if (num_bytes < 0){
-        perror("Eerror al ler del puerto serial");
-        return -1;
+/**
+ * Esta funcion se encarga de leer la respuesta de la comunicacion serial
+ * @param fd Un int de estado
+ * @param respuesta String con la respuesta del arduino
+ * @param tamano Tamaño del string respuesta
+ * @return Int de estado
+ */
+int leerRespuesta(int fd, char *buffer, int buffer_size) {
+    memset(buffer, 0, buffer_size);  // Limpiar buffer de respuesta
+
+    size_t total_bytes = 0;
+
+    while (total_bytes < buffer_size - 1){
+        int num_bytes = read(fd,  buffer + total_bytes,1);
+
+        if (num_bytes < 0) {
+            perror ("Error al leer del puerto serial");
+            return -1;
+        }
+        if (num_bytes == 0) break;
+
+        total_bytes += num_bytes;
+
+        if (buffer[total_bytes - 1] == '\n') break;        
     }
 
-    return num_bytes;
+    buffer[total_bytes] = '\0';
+
+    return total_bytes;
+    
 }
 
-int sendToArduino(int serial_port, const char *message){
-    int num_bytes = write(serial_port, message, strlen(message));
-    if (num_bytes < 0){
-        perror("Error al enviar datos al puerto serial");
-        return -1;
-    }
+/**
+ * Esta funcion envia un comando por el puerto serial
+ * @param fd Un int de estado
+ * @param comando String con el comando a enviar al arduino
+ * @return Un valor de resultado
+ */
+void enviarComando(int fd, const char *comando) {
+    // Añadir un salto de línea al comando si es necesario
+    char comando_con_salto[100];
+    snprintf(comando_con_salto, sizeof(comando_con_salto), "%s\n", comando);
 
-    int delim_bytes = write(serial_port, "\n",1);
-    if (delim_bytes < 0){
-        perror("Error al enviar el delimitador");
-        return -1;
+    int n_written = write(fd, comando_con_salto, strlen(comando_con_salto));
+    if (n_written < 0) {
+        perror("Error enviando el comando al puerto serial");
     }
-
-    return num_bytes + delim_bytes;
 }
 
-void closePort(int serial_port){
-    close(serial_port);
+/**
+ * Esta funcion cierra la comunicacion serial
+ * @param fd Un int de estado
+ */
+void cerrarComunicacion(int fd) {
+    close(fd);
 }
