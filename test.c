@@ -22,26 +22,29 @@ FILE* buscar_archivo_combinacion(const char* combinacion) {
     return f;
 }
 
-void decimal_a_binario(int n) {
+void decimal_a_binario_char(const char *decimal_str, char *binary_str, size_t binary_size) {
+    int n = atoi(decimal_str); // Convierte la cadena decimal a entero
     if (n == 0) {
-        printf("0\n");
+        snprintf(binary_str, binary_size, "0");
         return;
     }
 
-    char binario[32];
+    char temp[32]; // Búfer temporal para construir el binario
     int index = 0;
 
     while (n > 0) {
-        binario[index++] = (n % 2) ? '1' : '0';
+        temp[index++] = (n % 2) ? '1' : '0';
         n /= 2;
     }
 
-    // Imprimir el número binario
-    for (int i = index - 1; i >= 0; i--) {
-        putchar(binario[i]);
+    // Invierte los bits y guarda en binary_str
+    int j = 0;
+    for (int i = index - 1; i >= 0 && j < binary_size - 1; i--, j++) {
+        binary_str[j] = temp[i];
     }
-    printf("\n");
+    binary_str[j] = '\0'; // Termina la cadena con '\0'
 }
+
 
 // Función para encriptar con AES
 void encryptAES(const unsigned char *plaintext, unsigned char *ciphertext, const unsigned char *key) {
@@ -125,39 +128,39 @@ int main() {
     FILE* archivo = buscar_archivo_combinacion((const char*)decryptedtext);
 
     if (archivo != NULL) {
-        printf("Archivo encontrado para la combinación %s. Leyendo contenido...\n", decryptedtext);
+    printf("Archivo encontrado para la combinación %s. Leyendo contenido...\n", decryptedtext);
 
-        // Leer el contenido del archivo
-        int numero_decimal;
-        if (fscanf(archivo, "%d", &numero_decimal) == 1) {
-            printf("Número decimal leído del archivo: %d\n", numero_decimal);
+    // Leer el contenido del archivo como cadena
+    char decimal_str[16];
+    if (fgets(decimal_str, sizeof(decimal_str), archivo) != NULL) {
+        // Remueve el salto de línea si está presente
+        decimal_str[strcspn(decimal_str, "\n")] = '\0';
 
-            // Convertir el número decimal a binario
-            decimal_a_binario(numero_decimal);
-            
-             intToBinaryString(numero_decimal, binaryString, sizeof(binaryString));
-             printf("%s\n", binaryString);
+        printf("Número decimal leído del archivo: %s\n", decimal_str);
 
-        } else {
-            printf("Error al leer el número decimal del archivo.\n");
-        }
+        // Convertir la cadena decimal a binario
+        decimal_a_binario_char(decimal_str, binaryString, sizeof(binaryString));
+        printf("Número binario: %s\n", binaryString);
 
-        fclose(archivo);
+        // Enviar binario al Arduino
+        enviarComando(serial_port, binaryString);
+        printf("Binario enviado al Arduino\n");
+
     } else {
-        printf("No se pudo encontrar el archivo correspondiente.\n");
+        printf("Error al leer el contenido del archivo.\n");
     }
 
-
-    enviarComando(serial_port, binaryString);
-    printf("Binario enviado al arduino");
+    fclose(archivo);
+} else {
+    printf("No se pudo encontrar el archivo correspondiente.\n");
+}
 
     cerrarComunicacion(serial_port);
-
-    return 0;
 
     //MPI_Send(&message_Item, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
 
     //Cleans up the MPI environment and ends MPI communications.
     //MPI_Finalize();
+    
     return 0;
 }
