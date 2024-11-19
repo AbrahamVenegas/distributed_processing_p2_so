@@ -13,7 +13,7 @@ FILE* buscar_archivo_combinacion(const char* combinacion) {
     char archivo[256];
     snprintf(archivo, sizeof(archivo), "%s%s.txt", "combinaciones/", combinacion);
 
-    FILE* f = fopen(archivo, "r");
+    FILE* f = fopen("1234.txt", "r");
     if (f == NULL) {
         printf("No se encontró el archivo para la combinación: %s\n", combinacion);
         return NULL;
