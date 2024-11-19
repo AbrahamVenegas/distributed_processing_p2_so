@@ -8,12 +8,30 @@
 
 #define DIRECTORY_PATH "combinaciones/" // Carpeta donde están los archivos
 
+//Funcion para limpiar un problema con la cadena
+void limpiar_cadena(char* cadena){
+    char* p = cadena;
+    while (*p) {
+        if (*p == '\n' || *p == '\r'){
+            *p = '\0';
+        }
+        p++;
+    }
+    
+}
+
 // Función para buscar el archivo correspondiente a la combinación
 FILE* buscar_archivo_combinacion(const char* combinacion) {
     char archivo[256];
-    snprintf(archivo, sizeof(archivo), "%s%s.txt", "combinaciones/", combinacion);
+    char combinacion_limpia[256];
+    strncpy(combinacion_limpia, combinacion, sizeof(combinacion_limpia));
+    limpiar_cadena(combinacion_limpia);
 
-    FILE* f = fopen("1234.txt", "r");
+    snprintf(archivo, sizeof(archivo), "combinaciones/%s.txt", combinacion_limpia);
+    
+    printf("Intentado abrir el archivo: %s \n", archivo);
+
+    FILE* f = fopen(archivo, "r");
     if (f == NULL) {
         printf("No se encontró el archivo para la combinación: %s\n", combinacion);
         return NULL;
