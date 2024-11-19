@@ -3,6 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <openssl/aes.h>
+//#include <mpi.h>
 
 #define DIRECTORY_PATH "combinaciones/" // Carpeta donde están los archivos
 
@@ -58,8 +59,23 @@ void decryptAES(const unsigned char *ciphertext, unsigned char *decryptedtext, c
 int main() {
     // Llave para AES-128
     unsigned char key[16] = "1234567890123456";
+//int main(int argc, char** argv){
+    //Store an identifier for each of the parallel processes and the number of processes running in the cluster, respectively.
+    //int process_Rank, size_Of_Cluster;
 
-    
+    //Initializes the MPI environment. It takes in the addresses of the C++ command line arguments argc and argv.
+    //MPI_Init(&argc, &argv);
+
+    //Returns the total size of the environment via quantity of processes. The function takes in the MPI environment,
+    //and the memory address of an integer variable.
+    //MPI_Comm_size(MPI_COMM_WORLD, &size_Of_Cluster);
+
+    //Function returns the process ID of the processor that called the function. The function takes in the MPI 
+    //environment, and the memory address of an integer variable.
+    //MPI_Comm_rank(MPI_COMM_WORLD, &process_Rank);
+
+    //MPI_Recv(&message_Item, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
     // Línea para setear manualmente la combinación fija
     const char* combinacion_predefinida = "2413";
 
@@ -95,6 +111,9 @@ int main() {
     decryptAES(ciphertext, decryptedtext, key);
     printf("Texto desencriptado: %s\n", decryptedtext);
 
+    //Holds each process at a certain line of code until all processes have reached here
+    //MPI_Barrier(MPI_COMM_WORLD);
+
     // Buscar archivo basado en la combinación desencriptada
     FILE* archivo = buscar_archivo_combinacion((const char*)decryptedtext);
 
@@ -117,5 +136,9 @@ int main() {
         printf("No se pudo encontrar el archivo correspondiente.\n");
     }
 
+    //MPI_Send(&message_Item, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
+
+    //Cleans up the MPI environment and ends MPI communications.
+    //MPI_Finalize();
     return 0;
 }
