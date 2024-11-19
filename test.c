@@ -3,7 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <openssl/aes.h>
-#include <Hardware/Biblioteca.h>
+#include "Biblioteca.h"
 //#include <mpi.h>
 
 #define DIRECTORY_PATH "combinaciones/" // Carpeta donde están los archivos
@@ -11,7 +11,7 @@
 // Función para buscar el archivo correspondiente a la combinación
 FILE* buscar_archivo_combinacion(const char* combinacion) {
     char archivo[256];
-    snprintf(archivo, sizeof(archivo), "%s%s.txt", DIRECTORY_PATH, combinacion);
+    snprintf(archivo, sizeof(archivo), "%s%s.txt", "combinaciones/", combinacion);
 
     FILE* f = fopen(archivo, "r");
     if (f == NULL) {
@@ -87,7 +87,7 @@ int main() {
     //MPI_Recv(&message_Item, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 
-    const char *portname = "/dev/ttyACM1";
+    const char *portname = "/dev/ttyACM0";
 
     int serial_port = iniciarComunicacion(portname);
     if (serial_port < 0){

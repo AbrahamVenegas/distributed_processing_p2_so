@@ -1,19 +1,13 @@
-/**
- * @file Biblioteca.cpp
- * @author Kendall M (kendallmc@estudiantec.cr)
- * @brief Esta biblioteca se encarga de implementar todas 
- * las funciones ncesarias para comunicarse con el arduino
- * @version 0.1
- * @date 2024-11-12
- * 
- * @copyright Copyright (c) 2024
- */
 #include "Biblioteca.h"
 
+#ifndef CRTSCTS
+#define CRTSCTS 020000000000 // Definir manualmente si no está disponible
+#endif
+
 /**
- * Esta funcion inicia la comunicación con el arduino
- * @param puerto_serial Un string con el puerto donde está el arduino
- * @return
+ * Esta función inicia la comunicación con el Arduino.
+ * @param puerto_serial Una cadena con el puerto donde está el Arduino.
+ * @return Descriptor del archivo (fd) o -1 si hay un error.
  */
 int iniciarComunicacion(const char *puerto_serial) {
     int fd = open(puerto_serial, O_RDWR | O_NOCTTY);
@@ -60,42 +54,40 @@ int iniciarComunicacion(const char *puerto_serial) {
 }
 
 /**
- * Esta funcion se encarga de leer la respuesta de la comunicacion serial
- * @param fd Un int de estado
- * @param respuesta String con la respuesta del arduino
- * @param tamano Tamaño del string respuesta
- * @return Int de estado
+ * Esta función se encarga de leer la respuesta de la comunicación serial.
+ * @param fd Descriptor del archivo.
+ * @param buffer Cadena para almacenar la respuesta.
+ * @param buffer_size Tamaño del buffer.
+ * @return Número de bytes leídos o -1 si hay un error.
  */
 int leerRespuesta(int fd, char *buffer, int buffer_size) {
     memset(buffer, 0, buffer_size);  // Limpiar buffer de respuesta
 
     size_t total_bytes = 0;
 
-    while (total_bytes < buffer_size - 1){
-        int num_bytes = read(fd,  buffer + total_bytes,1);
+    while (total_bytes < buffer_size - 1) {
+        int num_bytes = read(fd, buffer + total_bytes, 1);
 
         if (num_bytes < 0) {
-            perror ("Error al leer del puerto serial");
+            perror("Error al leer del puerto serial");
             return -1;
         }
         if (num_bytes == 0) break;
 
         total_bytes += num_bytes;
 
-        if (buffer[total_bytes - 1] == '\n') break;        
+        if (buffer[total_bytes - 1] == '\n') break;
     }
 
     buffer[total_bytes] = '\0';
 
     return total_bytes;
-    
 }
 
 /**
- * Esta funcion envia un comando por el puerto serial
- * @param fd Un int de estado
- * @param comando String con el comando a enviar al arduino
- * @return Un valor de resultado
+ * Esta función envía un comando por el puerto serial.
+ * @param fd Descriptor del archivo.
+ * @param comando Cadena con el comando a enviar al Arduino.
  */
 void enviarComando(int fd, const char *comando) {
     // Añadir un salto de línea al comando si es necesario
@@ -109,8 +101,8 @@ void enviarComando(int fd, const char *comando) {
 }
 
 /**
- * Esta funcion cierra la comunicacion serial
- * @param fd Un int de estado
+ * Esta función cierra la comunicación serial.
+ * @param fd Descriptor del archivo.
  */
 void cerrarComunicacion(int fd) {
     close(fd);
