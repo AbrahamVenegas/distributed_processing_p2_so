@@ -3,6 +3,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <openssl/aes.h>
+#include <Hardware/Biblioteca.h>
 //#include <mpi.h>
 
 #define DIRECTORY_PATH "combinaciones/" // Carpeta donde están los archivos
@@ -56,13 +57,22 @@ void decryptAES(const unsigned char *ciphertext, unsigned char *decryptedtext, c
     AES_decrypt(ciphertext, decryptedtext, &decryptKey);
 }
 
+void intToBinaryString(int num, char *buffer, int size) {
+    buffer[size - 1] = '\0'; // Fin de la cadena
+    for (int i = size - 2; i >= 0; i--) {
+        buffer[i] = (num % 2) + '0'; // Obtiene el bit menos significativo y lo convierte a carácter
+        num /= 2;
+    }
+}
+
 int main() {
-    // Llave para AES-128
-    unsigned char key[16] = "1234567890123456";
 //int main(int argc, char** argv){
     //Store an identifier for each of the parallel processes and the number of processes running in the cluster, respectively.
     //int process_Rank, size_Of_Cluster;
 
+    // Llave para AES-128
+    unsigned char key[16] = "1234567890123456";
+    char binaryString[1024];
     //Initializes the MPI environment. It takes in the addresses of the C++ command line arguments argc and argv.
     //MPI_Init(&argc, &argv);
 
@@ -76,26 +86,23 @@ int main() {
 
     //MPI_Recv(&message_Item, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    // Línea para setear manualmente la combinación fija
-    const char* combinacion_predefinida = "2413";
 
-    // Línea para ingresar la combinación por input
-    char combinacion_input[16];
+    const char *portname = "/dev/ttyACM1";
 
-    // Alternar
-    //#define USAR_COMBINACION_FIJA  // Descomentar para usar la combinación fija
+    int serial_port = iniciarComunicacion(portname);
+    if (serial_port < 0){
+        return -1;
+    }
+    char read_buf[16]; //Buffer para almacenar los datos recibidos
 
-    #ifdef USAR_COMBINACION_FIJA
-        const char* combinacion = combinacion_predefinida;
-    #else
-        printf("Ingresa la combinación de 4 dígitos: ");
-        scanf("%4s", combinacion_input);
-        const char* combinacion = combinacion_input;
-    #endif
+    int num_bytes = leerRespuesta(serial_port, read_buf, sizeof(read_buf)); //Leer del puerto serial
+    if (num_bytes > 0){
+        printf ("Recibido: %s\n", read_buf);
+    }
 
     // Encriptar la combinación
     unsigned char plaintext[16] = {0};
-    snprintf((char *)plaintext, sizeof(plaintext), "%s", combinacion);
+    snprintf((char *)plaintext, sizeof(plaintext), "%s", read_buf);
 
     unsigned char ciphertext[16] = {0};
     unsigned char decryptedtext[16] = {0};
@@ -127,6 +134,10 @@ int main() {
 
             // Convertir el número decimal a binario
             decimal_a_binario(numero_decimal);
+            
+             intToBinaryString(numero_decimal, binaryString, sizeof(binaryString));
+             printf("%s\n", binaryString);
+
         } else {
             printf("Error al leer el número decimal del archivo.\n");
         }
@@ -135,6 +146,14 @@ int main() {
     } else {
         printf("No se pudo encontrar el archivo correspondiente.\n");
     }
+
+
+    enviarComando(serial_port, binaryString);
+    printf("Binario enviado al arduino");
+
+    cerrarComunicacion(serial_port);
+
+    return 0;
 
     //MPI_Send(&message_Item, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
 
