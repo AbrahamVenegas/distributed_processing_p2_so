@@ -104,26 +104,21 @@ int main(int argc, char** argv){
     //environment, and the memory address of an integer variable.
     MPI_Comm_rank(MPI_COMM_WORLD, &process_Rank);
 
-    
+    //Leer la combinación
 
-
-    const char *portname = "/dev/ttyARDUINO0";
-
-    int serial_port = iniciarComunicacion(portname);
-    if (serial_port < 0){
-        return -1;
+    FILE* combi = fopen("combinacion.txt", "r");
+    if (combi == NULL){
+        printf("No se encontro el archivo combinacion.txt \n");
     }
-    char read_buf[16]; //Buffer para almacenar los datos recibidos
-
-    int num_bytes = leerRespuesta(serial_port, read_buf, sizeof(read_buf)); //Leer del puerto serial
-    if (num_bytes > 0){
-        printf ("Recibido: %s\n", read_buf);
-        MPI_Recv(&read_buf, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    char combi_str[16];
+    if (fgets(combi_str, sizeof(combi_str), combi)!= NULL){
+        combi_str[strcspn(combi_str, "\n")] = '\0';
+        printf("COmbinacion leida: %s \n", combi_str);
     }
 
     // Encriptar la combinación
     unsigned char plaintext[16] = {0};
-    snprintf((char *)plaintext, sizeof(plaintext), "%s", read_buf);
+    snprintf((char *)plaintext, sizeof(plaintext), "%s", combi_str);
 
     unsigned char ciphertext[16] = {0};
     unsigned char decryptedtext[16] = {0};
@@ -163,10 +158,18 @@ int main(int argc, char** argv){
         decimal_a_binario_char(decimal_str, binaryString, sizeof(binaryString));
         printf("Número binario: %s\n", binaryString);
 
-        // Enviar binario al Arduino
-        enviarComando(serial_port, binaryString);
-        printf("Binario enviado al Arduino\n");
+        // Enviar binario al result.txt
+        printf("Binario escrito en el result.txt\n");
         MPI_Send(&binaryString, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
+        const char *filename = "resultado.txt";
+        FILE *result = fopen(filename, "w");
+        if (result == NULL){
+            perror("Error al abrir el archivo \n");
+            return EXIT_FAILURE;
+        }
+        //Escribir el binario en el archivo
+        fprintf(result, "%s\n", binaryString);
+         
 
     } else {
         printf("Error al leer el contenido del archivo.\n");
