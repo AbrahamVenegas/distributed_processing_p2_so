@@ -180,8 +180,6 @@ int main(int argc, char** argv){
     printf("No se pudo encontrar el archivo correspondiente.\n");
 }
 
-    cerrarComunicacion(serial_port);
-
     //Cleans up the MPI environment and ends MPI communications.
     MPI_Finalize();
     
