@@ -86,26 +86,25 @@ void intToBinaryString(int num, char *buffer, int size) {
     }
 }
 
-int main() {
-//int main(int argc, char** argv){
+int main(int argc, char** argv){
     //Store an identifier for each of the parallel processes and the number of processes running in the cluster, respectively.
-    //int process_Rank, size_Of_Cluster;
+    int process_Rank, size_Of_Cluster;
 
     // Llave para AES-128
     unsigned char key[16] = "1234567890123456";
     char binaryString[1024];
     //Initializes the MPI environment. It takes in the addresses of the C++ command line arguments argc and argv.
-    //MPI_Init(&argc, &argv);
+    MPI_Init(&argc, &argv);
 
     //Returns the total size of the environment via quantity of processes. The function takes in the MPI environment,
     //and the memory address of an integer variable.
-    //MPI_Comm_size(MPI_COMM_WORLD, &size_Of_Cluster);
+    MPI_Comm_size(MPI_COMM_WORLD, &size_Of_Cluster);
 
     //Function returns the process ID of the processor that called the function. The function takes in the MPI 
     //environment, and the memory address of an integer variable.
-    //MPI_Comm_rank(MPI_COMM_WORLD, &process_Rank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &process_Rank);
 
-    //MPI_Recv(&message_Item, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    
 
 
     const char *portname = "/dev/ttyARDUINO0";
@@ -119,6 +118,7 @@ int main() {
     int num_bytes = leerRespuesta(serial_port, read_buf, sizeof(read_buf)); //Leer del puerto serial
     if (num_bytes > 0){
         printf ("Recibido: %s\n", read_buf);
+        MPI_Recv(&read_buf, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
 
     // Encriptar la combinación
@@ -139,8 +139,11 @@ int main() {
     decryptAES(ciphertext, decryptedtext, key);
     printf("Texto desencriptado: %s\n", decryptedtext);
 
+    // Broadcast of the combination to all the nodes
+    MPI_Bcast(decryptedtext, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+
     //Holds each process at a certain line of code until all processes have reached here
-    //MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // Buscar archivo basado en la combinación desencriptada
     FILE* archivo = buscar_archivo_combinacion((const char*)decryptedtext);
@@ -163,6 +166,7 @@ int main() {
         // Enviar binario al Arduino
         enviarComando(serial_port, binaryString);
         printf("Binario enviado al Arduino\n");
+        MPI_Send(&binaryString, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
 
     } else {
         printf("Error al leer el contenido del archivo.\n");
@@ -175,10 +179,8 @@ int main() {
 
     cerrarComunicacion(serial_port);
 
-    //MPI_Send(&message_Item, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
-
     //Cleans up the MPI environment and ends MPI communications.
-    //MPI_Finalize();
+    MPI_Finalize();
     
     return 0;
 }
