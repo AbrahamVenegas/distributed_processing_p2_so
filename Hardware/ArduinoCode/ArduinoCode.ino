@@ -74,7 +74,7 @@ void playBinary(String binaryResponse){
       digitalWrite(speakerPin, HIGH);
       delay(1000);
       digitalWrite(speakerPin, LOW);
-      delay(500);
+      delay(100);
     }else if (bit == '0'){
       delay(2000);
     }

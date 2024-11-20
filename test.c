@@ -108,7 +108,7 @@ int main() {
     //MPI_Recv(&message_Item, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 
-    const char *portname = "/dev/ttyACM0";
+    const char *portname = "/dev/ttyARDUINO0";
 
     int serial_port = iniciarComunicacion(portname);
     if (serial_port < 0){

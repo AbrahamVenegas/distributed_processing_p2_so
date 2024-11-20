@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int main(){
-    const char *portname = "/dev/ttyACM1";
+    const char *portname = "/dev/ttyARDUINO0";
     int baud_rate = B9600;
 
     int serial_port = iniciarComunicacion(portname);
