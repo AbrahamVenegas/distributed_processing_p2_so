@@ -31,13 +31,13 @@ int main() {
 
     printf("Combinacion escrita exitosamente en el archivo '%s'.\n", filename);
 
-    sleep(30);
+    sleep(3);
 
     const char *resultao = "resultados.txt";
 
     FILE* result = fopen(resultao, "r");
     if (result == NULL){
-        printf("No se encontro el archivo combinacion.txt \n");
+        printf("No se encontro el archivo resultados.txt \n");
     }
     char combi_str[1024];
     if (fgets(combi_str, sizeof(combi_str), result)!= NULL){
@@ -52,7 +52,7 @@ int main() {
     fclose(result);
     cerrarComunicacion(serial_port);
 
-    printf("Combinacion leida exitosamente del archivo '%s'.\n", filename);
+    printf("Combinacion leida exitosamente del archivo '%s'.\n", resultao);
 
     return EXIT_SUCCESS;
 }

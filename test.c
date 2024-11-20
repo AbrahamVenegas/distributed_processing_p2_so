@@ -161,7 +161,7 @@ int main(int argc, char** argv){
         // Enviar binario al result.txt
         printf("Binario escrito en el result.txt\n");
         MPI_Send(&binaryString, 1, MPI_INT, 1, 1, MPI_COMM_WORLD);
-        const char *filename = "resultado.txt";
+        const char *filename = "resultados.txt";
         FILE *result = fopen(filename, "w");
         if (result == NULL){
             perror("Error al abrir el archivo \n");
