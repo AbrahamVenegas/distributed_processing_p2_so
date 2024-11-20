@@ -4,7 +4,7 @@
 #include <dirent.h>
 #include <openssl/aes.h>
 #include "Biblioteca.h"
-//#include <mpi.h>
+#include <mpi.h>
 
 #define DIRECTORY_PATH "combinaciones/" // Carpeta donde están los archivos
 
